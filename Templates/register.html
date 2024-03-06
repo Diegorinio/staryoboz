@@ -1,0 +1,23 @@
+{%extends 'base.html'%}
+
+{%block title%}formularz{%endblock%}
+
+{%block content%}
+
+    <form id="form" action="{{'register'}}" method="post">
+        <h1>REJESTRACJA</h1>
+        <label for="email">Podaj swój e-mail: </label>
+        <input type="number" name="email" id="email"><br>
+        <label for="login">Podaj swój login: </label>
+        <input type="number" name="login" id="login"><br>
+        <label for="pass">Podaj swoje hasło: </label>
+        <input type="text" name="pass" id="pass"><br>
+        <label for="pass2">Powtórz podane hasło: </label>
+        <input type="text" name="pass2" id="pass2"><br>
+        <label for="opis">Akceptuje warunki umowy i inne tego typu: </label>
+        <input type="checkbox" name="warunki" id="warunki"><br>
+        <input type="submit" value="Zaloguj">
+    </form>
+    <a href="{{'login'}}">Logowanie</a>
+
+{%endblock%}

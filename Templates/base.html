@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/">Strona główna</a></li>
+            <li><a href="{{ url_for('login') }}">Zaloguj się</a></li>
+            <li><a href="{{ url_for('register') }}">Zarejestruj się</a></li>
+        </ul>
+    </nav>
+    <div class = "content">
+        {% block content %}
+        <h2>based template</h2>
+        {% endblock %}
+    </div>
+</body>
+</html>
+
