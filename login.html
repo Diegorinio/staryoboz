@@ -1,0 +1,18 @@
+{%extends 'base.html'%}
+
+{%block title%}formularz{%endblock%}
+
+{%block content%}
+
+    <form id="form" action="{{'login'}}" method="post">
+        <h1>LOGIN</h1>
+        <label for="login">Podaj swój login: </label>
+        <input type="text" name="login" id="login"><br>
+        <label for="password">Podaj swoje hasło: </label>
+        <input type="password" name="password" id="password"><br>
+        {{msg}}
+        <input type="submit" value="Zaloguj">
+    </form>
+    <a href="{{'register'}}">Rejestracja</a>
+
+{%endblock%}
