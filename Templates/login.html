@@ -4,15 +4,21 @@
 
 {%block content%}
 
+<div>
+<h1>LOGIN</h1>
+
     <form id="form" action="{{'login'}}" method="post">
-        <h1>LOGIN</h1>
-        <label for="login">Podaj swój login: </label>
-        <input type="number" name="login" id="login"><br>
-        <label for="pass">Podaj swoje hasło: </label>
-        <input type="text" name="pass" id="pass"><br>
-        {{msg}}
-        <input type="submit" value="Zaloguj">
+        <div class="mb-3 ">
+            <label for="login" class="form-label">Podaj swój login: </label>
+            <input type="text" name="login" id="login" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Podaj swoje hasło: </label>
+            <input type="password" name="password" id="password" class="form-control">
+            {{msg}}
+        </div>
+        <button class="btn btn-primary">Zaloguj</button>
     </form>
-    <a href="{{'register'}}">Rejestracja</a>
+</div>
 
 {%endblock%}
