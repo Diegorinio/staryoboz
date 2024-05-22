@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="index">
+    <img src="{{ url_for('static',filename='images/ad.jpg') }}">    
+    <br>
+    <p>
+        {{msg}}
+    </p>
+</div>
+
+
+{% endblock %}

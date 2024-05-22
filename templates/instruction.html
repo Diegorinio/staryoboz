@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="instruction">
+    <h1>Instrukcja korzystania z api:</h1>
+    <p>Wszystkie hasła zapisywane w bazie danych są po uprzednim zahashowaniu</p>
+    <h2>GET</h2>
+    <p>API serwisu znajduje się pod adresem 6180.pythonanywhere.com/api/endpoint.</p>
+    <p>Lista wszystkich użytkowników 6180.pythonanywhere.com/api/users</p>
+    <p>Wyszukać konkretnego użytkownika można poprzez dodanie id, username lub emaila po endpoicie api/users/np.</p>
+    <p>Po id: 6180.pythonanywhere.com/api/users/1</p>
+    <p>lub po username/emailu: 6180.pythonanywhere.com/api/users/test</p>
+    <br>
+    <h2>POST</h2>
+        <p>Dodać użytkownika można poprzez <b>POST</b>, wzór danych:
+        <p>{
+            "id": ' ',</p>
+        <p>"email": "EMAIL UZYTKOWNIKA"</p>
+        <p>"username": "NAZWA UZYTKOWNIKA"</p>
+        <p>"password": "HASLO"
+            }</p>
+        <br>
+    <h2>PUT</h2>
+    <p>Aktualizować dane użytkownika można za pomocą metody <b>POST</b></p>
+    <p>Aktualizacje danych należy dokonać poprzez wskazanie id użytkownika w linku</p>
+    <p>Przykład linku do <b>POST</b>: 6180.pythonanywhere.com/api/users/1</p>
+    <p>Do aktualizacji danych należy wykorzystać powyższy wzór danych</p>
+    <p>Można aktualizować pojedyńcze dane poprzez pominięcie innych w wzorze</p>
+    <br>
+    <h2>DELETE</h2>
+    <p>Usuwać dane użytkownika można za pomocą metody <b>DELETE</b></p>
+    <p>Usunięcie użytkownika należy dokonać poprzez wskazanie id użytkownika w linku</p>
+    <p>Przykład linku do <b>DELETE</b>: 6180.pythonanywhere.com/api/users/1</p>
+</div>
+
+{% endblock %}

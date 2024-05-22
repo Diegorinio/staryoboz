@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../static/css.css" rel="stylesheet">
+    <title>Stary Obóz</title>
+</head>
+<body>
+    <nav class="navbar menu">
+            <div>
+             <ul>
+                <li class="logo">
+                    <a class="test" href="/#"><img width="100%" height="42px" src="../static/images/sniacy.png"></a>
+                </li>
+                <li>
+                    <a href="/#">Strona główna</a>
+                </li>
+                <li>
+                    <a href="{{url_for('register')}}">Rejestracja</a>
+                </li>
+                 <li>
+                    <a href="{{url_for('login')}}">Login</a>
+                </li>
+                <li>
+                    <a href="{{url_for('instruction')}}">API</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <br><br><br>
+    <div>
+        {% block content %}
+        <h2>Placeholder dla zawarości dla każdej podstrony</h2>
+        {% endblock %}
+    </div>
+    <footer class="footer">
+       <p>Stary obóz ©</p>
+       <p class="prawo">Wykonane przez: Tomasz Podoba, Adrian Stański</p>
+    </footer>
+</body>
+</html>
+
