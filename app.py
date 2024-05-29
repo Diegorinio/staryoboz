@@ -2,6 +2,24 @@ from flask import Flask, render_template,request,jsonify
 import database
 app = Flask(__name__,template_folder='templates')
 import uuid
+
+
+def requireApiKey(f):
+    def decorator(*args,**kwargs):
+        api_key = request.headers.get('X-api-key')
+        # print(api_key)
+        if not api_key:
+            api_key=request.args.get('api_key')
+            print(api_key)
+        print(f'Klicz api {api_key}')
+        valid = database.isKeyValid(api_key)
+        if valid:
+            return f(*args,**kwargs)
+        else:
+            resposnse = jsonify({"message":"Invalid or missing API key"})
+            return resposnse
+    return decorator
+
 @app.route('/')
 def index():
     api_key = str(uuid.uuid4())
@@ -23,11 +41,14 @@ def register():
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method=='POST':
-        print(request.form)
         if readFromDatabase(request.form):
-            return render_template('index.html',msg="Zalogowano")
+            print(request.form['username'])
+            apiKey = database.getApiKey(request.form['username'])
+            print(apiKey)
+            welcomeMessage = "Witaj "+request.form['username']+"\n twój klucz api: "+apiKey
+            return render_template('index.html',msg=welcomeMessage)
         else:
-            return render_template('login.html',msg="Nieprawodłowa nazwa użytkownika lub hasło")
+            return render_template('login.html',msg="Nieprawidłowa nazwa użytkownika lub hasło")
     elif request.method=='GET':
         return render_template('login.html')
 if __name__ =='__main__':
@@ -39,13 +60,10 @@ def instruction():
     return render_template('instruction.html')
 
 @app.route('/api/users',methods=['GET','POST'])
+@requireApiKey
 def api():
         api_key = request.headers.get('x-api-key')
         print(api_key)
-        if not api_key:
-            api_key = request.args.get('api_key')
-            print(api_key)
-        # database.checkIfKeyExists(api_key)
         response_data = {
             "success":True,
             "data":[]
@@ -53,7 +71,8 @@ def api():
         if request.method=='GET':
             sql = "select * from users"
             db = database.get_db()
-            cursor = db.execute(sql)
+            cursor = db.cursor(dictionary=True) 
+            cursor.execute(sql)
             users = cursor.fetchall()
             schema = database.UsersSchema(many=True)
             if users is not None:
@@ -65,7 +84,6 @@ def api():
             data = request.json
             if checkData(data):
                 pohaszowaniu = str(database.getHash(app,data['password']))[2:-1]
-                print(type(pohaszowaniu))
                 data['password'] = pohaszowaniu
                 response_data['data']=data
                 response = jsonify(response_data)
@@ -85,90 +103,113 @@ def checkData(data):
         return True
 
 
-@app.route('/api/users/<string:input>',methods=['GET','DELETE','PUT'])
-def findUser(input):
-        typ = ""
-        if input.isdigit():
-                typ="id"
-        else:
-            if isEmail(input):
-                typ="email"
+@app.route('/api/users/',methods=['GET','DELETE','PUT'])
+def findUser():
+        # print(request.args.get('query'))
+        input = request.args.get('query')
+        api_key = request.headers.get('X-api-key')
+        if not api_key:
+            api_key = request.args.get('api_key')
+        if database.isKeyValid(api_key):
+            typ = ""
+            if input.isdigit():
+                    typ="id"
             else:
-                typ="username"
-        if request.method=='GET':
-            sql= f'select * from users where {typ}=?'
-            db = database.get_db()
-            cursor = db.execute(sql,[input])
-            users = cursor.fetchone()
-            if users is not None:
-                schema = database.UsersSchema()
-                return jsonify(
-                    {"success":True,
-                    "data":schema.dump(users)
-                    }),200
-            else:
-                return notFound()
-        elif request.method=='DELETE':
-            response_data = {
-            "success":True,
-            "data":[]
-            }
-            try:
-                sql = f'delete from users where {typ}=?'
-                db =  database.get_db()
-                db.execute(sql,[input])
-                db.commit()
-                return response_data
-            except:
-                notFound()
-        elif request.method=='PUT':
-            response_data = {
-            "success":True,
-            "data":[]
-            }
-            data = request.json
-            sql = f'select * from users where {typ}=?'
-            db = database.get_db()
-            db_res_cursor = db.execute(sql,input)
-            dane = {}
-            row = db_res_cursor.fetchone()
-            dane = {'id':row['id'],'username':row['username'],'email':row['email'],'password':row['password']}
-            print( dane)
-            if 'username' in data or 'email' in data or 'password' in data and checkData(data):
-                if 'username' in data:
-                    dane['username']=data['username']
-                if 'email' in data:
-                    dane['email']=data['email']
-                if 'password' in data:
-                    dane['password']=str(database.getHash(app,data['password']))[2:-1]
-            else:
-                response_data['success']=False
-                response_data['data']="No arguments provided"
-                return response_data
-            print(dane)
-            try:
-                sql2 = f'UPDATE users SET username=?,email=?,password=? where {typ}=?'
-                db.execute(sql2,(dane['username'],dane['email'],dane['password'],input))
-                db.commit()
-                db.close()
-                response_data['data']="Updated"
-            except Exception as error:
-                response_data['data']=str(error)
-            return response_data
+                if isEmail(input):
+                    typ="email"
+                else:
+                    typ="username"
+            if request.method=='GET':
+                sql= f'select * from users where {typ}=%s'
+                db = database.get_db()
+                cursor = db.cursor(dictionary=True)
+                cursor.execute(sql,[input])
+                users = cursor.fetchone()
+                if users is not None:
+                    schema = database.UsersSchema()
+                    return jsonify(
+                        {"success":True,
+                        "data":schema.dump(users)
+                        }),200
+                else:
+                    return notFound()
+            elif request.method=='DELETE':
+                response_data = {
+                "success":True,"status":'Record delete'
+                }
+                try:
+                    sql = f'delete from users where {typ}=%s'
+                    db =  database.get_db()
+                    print(f'Sql {typ}:{input}')
+                    cursor = db.cursor()
+                    cursor.execute(sql,[input])
+                    print(cursor.rowcount)
+                    if(cursor.rowcount<=0):
+                        response_data = {"success":False,"status":"No row affected"}
+                        return response_data
+                    else:
+                        db.commit()
+                        response_data['status']=f'{cursor.rowcount} rows affected'
+                        return response_data
+                except:
+                    notFound()
+            elif request.method=='PUT':
+                response_data = {
+                "success":True,
+                "data":[]
+                }
+                data = request.json
+                sql = f'select * from users where {typ}=%s'
+                db = database.get_db()
+                cursor = db.cursor(dictionary=True)
+                cursor.execute(sql,[input])
+                dane = {}
+                row = cursor.fetchone()
+                # print(row)
 
+                dane = {'id':row['id'],'username':row['username'],'email':row['email'],'password':row['password'],'api_key':row['api_key']}
+                # print( dane)
+                if 'username' in data or 'email' in data or 'password' in data and checkData(data):
+                    if 'username' in data:
+                        dane['username']=data['username']
+                    if 'email' in data:
+                        dane['email']=data['email']
+                    if 'password' in data:
+                        dane['password']=str(database.getHash(app,data['password']))[2:-1]
+                else:
+                    response_data['success']=False
+                    response_data['data']="No arguments provided"
+                    return response_data
+                # print(dane)
+                try:
+                    sql2 = f'UPDATE users SET username=%s,email=%s,password=%s,api_key=%s where {typ}=%s'
+                    cursor = db.cursor()
+                    cursor.execute(sql2,[dane['username'],dane['email'],dane['password'],dane['api_key'],input])
+                    db.commit()
+                    db.close()
+                    response_data['data']="Updated"
+                except Exception as error:
+                    response_data['data']=str(error)
+                    response_data['success']=False
+                return response_data
+        else:
+            response = jsonify({'message':'Invalid or missing API key'})
+            return response
+            
 
 
 def saveToDatabase(req):
     email = req['email']
-    login=req['login']
+    login=req['username']
     password = req['password']
     api = database.generateApiKey()
     if email!='' and login!='' and password!='':
         try:
             hash_pass = database.getHash(app,password)
             db = database.get_db()
-            sql_command = "insert into users(email,username,password, api_key) values(?,?,?,?)"
-            db.execute(sql_command,[email,login,hash_pass,api])
+            sql_command = "insert into users(email,username,password, api_key) values(%s,%s,%s,%s)"
+            cursor = db.cursor()
+            cursor.execute(sql_command,[email,login,hash_pass,api])
             db.commit()
             db.close()
             return True
@@ -176,11 +217,12 @@ def saveToDatabase(req):
             return False
     else:
         return False
+    
+
 def readFromDatabase(req):
-    login = req['login']
+    login = req['username']
     password = req['password']
     return database.checkHash(app,login,password)
-
 def notFound():
     return jsonify(
         {"success":False,
