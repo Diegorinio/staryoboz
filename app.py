@@ -1,17 +1,12 @@
 from flask import Flask, render_template,request,jsonify
 import database
 app = Flask(__name__,template_folder='templates')
-import uuid
-
 
 def requireApiKey(f):
     def decorator(*args,**kwargs):
         api_key = request.headers.get('X-api-key')
-        # print(api_key)
         if not api_key:
             api_key=request.args.get('api_key')
-            print(api_key)
-        print(f'Klicz api {api_key}')
         valid = database.isKeyValid(api_key)
         if valid:
             return f(*args,**kwargs)
@@ -20,10 +15,9 @@ def requireApiKey(f):
             return resposnse
     return decorator
 
+# 
 @app.route('/')
 def index():
-    api_key = str(uuid.uuid4())
-    print(api_key)
     return render_template('index.html',msg="")
 
 
@@ -31,22 +25,15 @@ def index():
 def register():
     if request.method=='POST':
         return saveToDatabase(request.form)
-        if saveToDatabase(request.form):
-            return render_template('register.html',msg="Zalozono konto")
-        else:
-            return render_template('register.html',msg="Cos poszlo nie tak")
     elif request.method=='GET':
         return render_template('register.html',msg='')
-        return render_template('register.html',msg="")
 
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method=='POST':
         if readFromDatabase(request.form):
-            print(request.form['username'])
             apiKey = database.getApiKey(request.form['username'])
-            print(apiKey)
-            welcomeMessage = "Witaj "+request.form['username']+"\n twój klucz api: "+apiKey
+            welcomeMessage = "Witaj "+request.form['username']+"\n, twój klucz api: "+apiKey
             return render_template('index.html',msg=welcomeMessage)
         else:
             return render_template('login.html',msg="Nieprawidłowa nazwa użytkownika lub hasło")
@@ -57,6 +44,7 @@ if __name__ =='__main__':
 
 
 @app.route('/instruction')
+@app.route('/api/')
 def instruction():
     return render_template('instruction.html')
 
@@ -64,7 +52,6 @@ def instruction():
 @requireApiKey
 def api():
         api_key = request.headers.get('x-api-key')
-        print(api_key)
         response_data = {
             "success":True,
             "data":[]
@@ -106,7 +93,6 @@ def checkData(data):
 
 @app.route('/api/users/',methods=['GET','DELETE','PUT'])
 def findUser():
-        # print(request.args.get('query'))
         input = request.args.get('query')
         api_key = request.headers.get('X-api-key')
         if not api_key:
@@ -141,10 +127,8 @@ def findUser():
                 try:
                     sql = f'delete from users where {typ}=%s'
                     db =  database.get_db()
-                    print(f'Sql {typ}:{input}')
                     cursor = db.cursor()
                     cursor.execute(sql,[input])
-                    print(cursor.rowcount)
                     if(cursor.rowcount<=0):
                         response_data = {"success":False,"status":"No row affected"}
                         return response_data
@@ -166,10 +150,7 @@ def findUser():
                 cursor.execute(sql,[input])
                 dane = {}
                 row = cursor.fetchone()
-                # print(row)
-
                 dane = {'id':row['id'],'username':row['username'],'email':row['email'],'password':row['password'],'api_key':row['api_key']}
-                # print( dane)
                 if 'username' in data or 'email' in data or 'password' in data and checkData(data):
                     if 'username' in data:
                         dane['username']=data['username']
@@ -181,7 +162,6 @@ def findUser():
                     response_data['success']=False
                     response_data['data']="No arguments provided"
                     return response_data
-                # print(dane)
                 try:
                     sql2 = f'UPDATE users SET username=%s,email=%s,password=%s,api_key=%s where {typ}=%s'
                     cursor = db.cursor()
@@ -203,12 +183,11 @@ def saveToDatabase(req):
     email = req['email']
     login=req['username']
     password = req['password']
-    api = database.generateApiKey()
     if email!='' and login!='' and password!='':
         try:
             state = database.isUserExists(req)
             if not state['status']:
-                    
+                api = database.generateApiKey()
                 hash_pass = database.getHash(app,password)
                 db = database.get_db()
                 sql_command = "insert into users(email,username,password, api_key) values(%s,%s,%s,%s)"
@@ -219,7 +198,7 @@ def saveToDatabase(req):
             else:
                 return render_template('register.html',msg=state['msg'])
         except:
-            return render_template('register.html', msg="Coś poszło nie tak ¯\_(ツ)_/¯")
+            return render_template('register.html', msg="Coś poszło nie tak")
     else:
         return render_template('register.html', msg="Uzupełnij dane formularza") 
     

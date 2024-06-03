@@ -66,7 +66,6 @@ def getPosts():
 def getApiKey(username):
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    print(username)
     sql = f'SELECT api_key from users where username=%s'
     cursor.execute(sql,[username])
     return cursor.fetchone()['api_key']
@@ -79,13 +78,12 @@ def isUserExists(user):
     res= {"msg":'',"status":False}
     if len(ans)>0:
         for x in ans:
-            print(x['username'])
             if x['username']==user['username']:
-                res['msg']="Nazwa uzytownika jest juz zajeta"
+                res['msg']="Nazwa użytownika jest już zajęta"
                 res['status']=True
                 return res
             if x['email']==user['email']:
-                res['msg']="Adres email jest juz w uzyciu"
+                res['msg']="Adres email jest już w użyciu"
                 res['status']=True
                 return res
     return res
@@ -96,7 +94,6 @@ def isKeyValid(key):
     sql = 'select api_key from users where api_key=%s'
     cursor.execute(sql,[key])
     found_key = cursor.fetchone()
-    # print(found_key['api_key'])
     if(found_key is None):
         return False
     else:
