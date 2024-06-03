@@ -30,12 +30,13 @@ def index():
 @app.route('/register', methods=['GET','POST'])
 def register():
     if request.method=='POST':
-        print(request.form)
+        return saveToDatabase(request.form)
         if saveToDatabase(request.form):
             return render_template('register.html',msg="Zalozono konto")
         else:
             return render_template('register.html',msg="Cos poszlo nie tak")
     elif request.method=='GET':
+        return render_template('register.html',msg='')
         return render_template('register.html',msg="")
 
 @app.route('/login', methods=['GET','POST'])
@@ -205,18 +206,22 @@ def saveToDatabase(req):
     api = database.generateApiKey()
     if email!='' and login!='' and password!='':
         try:
-            hash_pass = database.getHash(app,password)
-            db = database.get_db()
-            sql_command = "insert into users(email,username,password, api_key) values(%s,%s,%s,%s)"
-            cursor = db.cursor()
-            cursor.execute(sql_command,[email,login,hash_pass,api])
-            db.commit()
-            db.close()
-            return True
+            state = database.isUserExists(req)
+            if not state['status']:
+                    
+                hash_pass = database.getHash(app,password)
+                db = database.get_db()
+                sql_command = "insert into users(email,username,password, api_key) values(%s,%s,%s,%s)"
+                cursor = db.cursor()
+                cursor.execute(sql_command,[email,login,hash_pass,api])
+                db.commit()
+                return render_template('register.html', msg="Założono konto")
+            else:
+                return render_template('register.html',msg=state['msg'])
         except:
-            return False
+            return render_template('register.html', msg="Coś poszło nie tak ¯\_(ツ)_/¯")
     else:
-        return False
+        return render_template('register.html', msg="Uzupełnij dane formularza") 
     
 
 def readFromDatabase(req):

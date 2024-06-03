@@ -3,12 +3,14 @@
 <div class="instruction">
     <h1>Instrukcja korzystania z api:</h1>
     <p>Wszystkie hasła zapisywane w bazie danych są po uprzednim zahashowaniu</p>
+    <p>Do skorzystania z API należy użyć api key, który zostaje wygenerowany każdemu użytkownikowi po rejestracji</p>
+    <p>Aby sprawdzić swój api key należy zalogować się na stronie</p>
     <h2>GET</h2>
-    <p>API serwisu znajduje się pod adresem 6180.pythonanywhere.com/api/endpoint.</p>
-    <p>Lista wszystkich użytkowników 6180.pythonanywhere.com/api/users</p>
-    <p>Wyszukać konkretnego użytkownika można poprzez dodanie id, username lub emaila po endpoicie api/users/np.</p>
-    <p>Po id: 6180.pythonanywhere.com/api/users/1</p>
-    <p>lub po username/emailu: 6180.pythonanywhere.com/api/users/test</p>
+    <p>API serwisu znajduje się pod adresem 6185.pythonanywhere.com/api/endpoint/?api_key=TWOJ_API_KEY.</p>
+    <p>Lista wszystkich użytkowników 6185.pythonanywhere.com/api/users?api_key=TWOJ_API_KEY</p>
+    <p>Wyszukać konkretnego użytkownika można poprzez dodanie id, username lub emaila do query api/users/?query=CO_CHCEMY_WYSZUKAC&api_key=TWOJ_API_KEY</p>
+    <p>Po id: 6185.pythonanywhere.com/api/users/?query=1&api_key=TWOJ_API_KEY</p>
+    <p>lub po username/emailu: 6185.pythonanywhere.com/api/users/?query=test&api_key=TWOJ_API_KEY</p>
     <br>
     <h2>POST</h2>
         <p>Dodać użytkownika można poprzez <b>POST</b>, wzór danych:
@@ -22,14 +24,14 @@
     <h2>PUT</h2>
     <p>Aktualizować dane użytkownika można za pomocą metody <b>POST</b></p>
     <p>Aktualizacje danych należy dokonać poprzez wskazanie id użytkownika w linku</p>
-    <p>Przykład linku do <b>POST</b>: 6180.pythonanywhere.com/api/users/1</p>
+    <p>Przykład linku do <b>POST</b>: 6185.pythonanywhere.com/api/users/?query=1&api_key=TWOJ_API_KEY</p>
     <p>Do aktualizacji danych należy wykorzystać powyższy wzór danych</p>
     <p>Można aktualizować pojedyńcze dane poprzez pominięcie innych w wzorze</p>
     <br>
     <h2>DELETE</h2>
     <p>Usuwać dane użytkownika można za pomocą metody <b>DELETE</b></p>
     <p>Usunięcie użytkownika należy dokonać poprzez wskazanie id użytkownika w linku</p>
-    <p>Przykład linku do <b>DELETE</b>: 6180.pythonanywhere.com/api/users/1</p>
+    <p>Przykład linku do <b>DELETE</b>: 6185.pythonanywhere.com/api/users/?query=1&api_key=TWOJ_API_KEY</p>
 </div>
 
 {% endblock %}

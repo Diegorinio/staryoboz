@@ -6,22 +6,14 @@ import uuid
 import mysql.connector
 
 
-# db = "./data.sql"
-# HOST = 'localhost'
-# USER = 'root'
-# PASSWORD = ''
-# TABLE  = 'users'
+db = "./data.sql"
+HOST = 'localhost'
+USER = 'root'
+PASSWORD = ''
+TABLE  = 'users'
 
 
 def get_db():
-    # if not hasattr(g,'sqlite.db'):
-    #     conn = sqlite3.connect(db)
-    #     conn.row_factory = sqlite3.Row
-    #     g.sqlite_db = conn
-    #sql = "CREATE TABLE IF NOT EXISTS users(id integer primary key autoincrement,email text, username text, password text, api_key text);"
-    #     conn.execute(sql)
-    #     conn.commit
-    # return g.sqlite_db
     dbb = mysql.connector.connect(host=HOST,user=USER,password=PASSWORD,db=TABLE)
 
     return dbb
@@ -78,6 +70,25 @@ def getApiKey(username):
     sql = f'SELECT api_key from users where username=%s'
     cursor.execute(sql,[username])
     return cursor.fetchone()['api_key']
+def isUserExists(user):
+    sql = "select * from users where username=%s or email=%s"
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(sql,(user['username'],user['email']))
+    ans = cursor.fetchall()
+    res= {"msg":'',"status":False}
+    if len(ans)>0:
+        for x in ans:
+            print(x['username'])
+            if x['username']==user['username']:
+                res['msg']="Nazwa uzytownika jest juz zajeta"
+                res['status']=True
+                return res
+            if x['email']==user['email']:
+                res['msg']="Adres email jest juz w uzyciu"
+                res['status']=True
+                return res
+    return res
 
 def isKeyValid(key):
     db=get_db()
@@ -93,7 +104,6 @@ def isKeyValid(key):
             return True
         else:
             return False
-    return False
         
 def generateApiKey():
     api_key = str(uuid.uuid4())
