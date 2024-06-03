@@ -5,13 +5,10 @@ from marshmallow import Schema,fields
 import uuid
 import mysql.connector
 
-
-db = "./data.sql"
 HOST = 'localhost'
 USER = 'root'
 PASSWORD = ''
 TABLE  = 'users'
-
 
 def get_db():
     dbb = mysql.connector.connect(host=HOST,user=USER,password=PASSWORD,db=TABLE)
@@ -101,7 +98,7 @@ def isKeyValid(key):
             return True
         else:
             return False
-        
+
 def generateApiKey():
     api_key = str(uuid.uuid4())
     return api_key

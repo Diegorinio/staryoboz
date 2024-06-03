@@ -15,7 +15,7 @@ def requireApiKey(f):
             return resposnse
     return decorator
 
-# 
+#
 @app.route('/')
 def index():
     return render_template('index.html',msg="")
@@ -33,7 +33,7 @@ def login():
     if request.method=='POST':
         if readFromDatabase(request.form):
             apiKey = database.getApiKey(request.form['username'])
-            welcomeMessage = "Witaj "+request.form['username']+"\n, twój klucz api: "+apiKey
+            welcomeMessage = "Witaj "+request.form['username']+"\ntwój klucz api: "+apiKey
             return render_template('index.html',msg=welcomeMessage)
         else:
             return render_template('login.html',msg="Nieprawidłowa nazwa użytkownika lub hasło")
@@ -59,7 +59,7 @@ def api():
         if request.method=='GET':
             sql = "select * from users"
             db = database.get_db()
-            cursor = db.cursor(dictionary=True) 
+            cursor = db.cursor(dictionary=True)
             cursor.execute(sql)
             users = cursor.fetchall()
             schema = database.UsersSchema(many=True)
@@ -176,7 +176,7 @@ def findUser():
         else:
             response = jsonify({'message':'Invalid or missing API key'})
             return response
-            
+
 
 
 def saveToDatabase(req):
@@ -200,8 +200,8 @@ def saveToDatabase(req):
         except:
             return render_template('register.html', msg="Coś poszło nie tak")
     else:
-        return render_template('register.html', msg="Uzupełnij dane formularza") 
-    
+        return render_template('register.html', msg="Uzupełnij dane formularza")
+
 
 def readFromDatabase(req):
     login = req['username']
