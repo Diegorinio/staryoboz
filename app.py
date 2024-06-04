@@ -2,6 +2,7 @@ from flask import Flask, render_template,request,jsonify
 import database
 app = Flask(__name__,template_folder='templates')
 
+# Dekorator sprawdzający czy został wprowadzony prawidłowy klucz api
 def requireApiKey(f):
     def decorator(*args,**kwargs):
         api_key = request.headers.get('X-api-key')
@@ -15,7 +16,6 @@ def requireApiKey(f):
             return resposnse
     return decorator
 
-#
 @app.route('/')
 def index():
     return render_template('index.html',msg="")
@@ -31,7 +31,7 @@ def register():
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method=='POST':
-        if readFromDatabase(request.form):
+        if isLoginCorrect(request.form):
             apiKey = database.getApiKey(request.form['username'])
             welcomeMessage = "Witaj "+request.form['username']+"\ntwój klucz api: "+apiKey
             return render_template('index.html',msg=welcomeMessage)
@@ -39,8 +39,10 @@ def login():
             return render_template('login.html',msg="Nieprawidłowa nazwa użytkownika lub hasło")
     elif request.method=='GET':
         return render_template('login.html')
+    
 if __name__ =='__main__':
-    app.run(debug=True)
+    # app.run(debug=True)
+    app.run()
 
 
 @app.route('/instruction')
@@ -48,10 +50,10 @@ if __name__ =='__main__':
 def instruction():
     return render_template('instruction.html')
 
+# Routing api do wyświetlenia oraz wprowadzania użytkowników
 @app.route('/api/users',methods=['GET','POST'])
 @requireApiKey
 def api():
-        api_key = request.headers.get('x-api-key')
         response_data = {
             "success":True,
             "data":[]
@@ -70,13 +72,13 @@ def api():
                 return notFound()
         elif request.method=='POST':
             data = request.json
-            if checkData(data):
+            if isDataNotEmpty(data):
                 pohaszowaniu = str(database.getHash(app,data['password']))[2:-1]
                 data['password'] = pohaszowaniu
                 response_data['data']=data
                 response = jsonify(response_data)
                 response.status_code = 201
-                database.addUser(data)
+                database.insertUserToDB(data)
                 return response
             else:
                 response_data['success']=False
@@ -84,7 +86,8 @@ def api():
                 return response_data
 
 
-def checkData(data):
+# Funkcja sprawdzająca czy podany email, nazwa uzytkownika lub haslo nie jest puste 
+def isDataNotEmpty(data):
     if data['email']=='' or data['username']=='' or data['password']=='':
         return False
     else:
@@ -102,7 +105,7 @@ def findUser():
             if input.isdigit():
                     typ="id"
             else:
-                if isEmail(input):
+                if isEmailValid(input):
                     typ="email"
                 else:
                     typ="username"
@@ -151,7 +154,7 @@ def findUser():
                 dane = {}
                 row = cursor.fetchone()
                 dane = {'id':row['id'],'username':row['username'],'email':row['email'],'password':row['password'],'api_key':row['api_key']}
-                if 'username' in data or 'email' in data or 'password' in data and checkData(data):
+                if 'username' in data or 'email' in data or 'password' in data and isDataNotEmpty(data):
                     if 'username' in data:
                         dane['username']=data['username']
                     if 'email' in data:
@@ -178,11 +181,14 @@ def findUser():
             return response
 
 
-
+# GŁówna funkcja do zapisywania użytkownika w bazie danych
+# Funkcja jako argument przyjmuje dane z formularza
+# Funkcja sprawddza czy dane nie są puste, następnie sprawdza czy dane nie są już w bazie
+# Jeżeli dane nie są w bazie zostaje wygenerowany klucz api, hasło zostaje przekształcona na hash a na końcu dane są zapisane do bazy danych
 def saveToDatabase(req):
-    email = req['email']
+    email=req['email']
     login=req['username']
-    password = req['password']
+    password=req['password']
     if email!='' and login!='' and password!='':
         try:
             state = database.isUserExists(req)
@@ -203,17 +209,21 @@ def saveToDatabase(req):
         return render_template('register.html', msg="Uzupełnij dane formularza")
 
 
-def readFromDatabase(req):
+# Funkcja do logowania sprawdzająca czy dany użytkownik istnieje
+def isLoginCorrect(req):
     login = req['username']
     password = req['password']
     return database.checkHash(app,login,password)
+
+# Funkcja zwracająca brak danych
 def notFound():
     return jsonify(
         {"success":False,
         "data":"Data not found"
         }),404
-
-def isEmail(data):
+    
+# Funkcja sprawdzająca czy adres email jest prawidłowy przez sprawdzenie czy w ciągu znajduje się znak @
+def isEmailValid(data):
     if '@' in data:
         return True
     else:

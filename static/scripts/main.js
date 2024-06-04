@@ -2,8 +2,20 @@ let form = document.getElementById('form').elements;
 let button = document.querySelector('.button-12');
 let info = document.querySelector('.pass_info');
 let e_info = document.querySelector('.mail_info');
-let passwordValid=false;
+let isPasswordValid=false;
+let isPasswordConfirmValid=false;
 let emailValiid = false;
+form.password.addEventListener('input',(e)=>{
+    let password_current = e.target.value;
+    if(password_current.length>=3){
+        isPasswordValid=true;
+        info.innerHTML=""
+    }
+    else{
+        isPasswordValid=false;
+        info.innerHTML="Hasło mus posiadać minimum 3 znaki"
+    }
+})
 form.email.addEventListener('input',(e)=>{
     let mail = e.target.value;
     if(mail.includes('@')){
@@ -22,13 +34,14 @@ form.email.addEventListener('input',(e)=>{
         emailValiid=false;
     }
 })
+
 form.password_confirm.addEventListener('input',(e)=>{
 let pass = form.password.value;
 if(e.target.value==pass){
     confirm_pass=e.target.value;
     info.innerHTML="";
-    passwordValid=true;
-    if(form.warunki.checked==true&&emailValiid){
+    isPasswordConfirmValid=true;
+    if(form.warunki.checked==true&&emailValiid&&isPasswordValid){
         document.querySelector('#register-btn').removeAttribute('disabled');
     }
 }
@@ -37,8 +50,9 @@ else{
     info.innerHTML="Powtórzone hasło nie jest prawidłowe"
 }
 })
+
 form.warunki.addEventListener('change',()=>{
-    if(form.warunki.checked && passwordValid&&emailValiid){
+    if(form.warunki.checked && isPasswordConfirmValid&&emailValiid&&isPasswordValid){
         document.querySelector('#register-btn').removeAttribute('disabled');
     }
     else{

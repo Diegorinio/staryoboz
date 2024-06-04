@@ -10,16 +10,19 @@ USER = 'root'
 PASSWORD = ''
 TABLE  = 'users'
 
+# Funkcja zwracająca połączenie z bazą danych
 def get_db():
     dbb = mysql.connector.connect(host=HOST,user=USER,password=PASSWORD,db=TABLE)
-
     return dbb
-def close_db():
-    return
 
+# Funkcja zwracająca hasło po przekształceniu przez algorytm hashowania
+# Funkcja przyjmuje instancje aplikacji oraz ciąg znaków( hasło ) jako argument
 def getHash(ctx,password):
     bcrypt = Bcrypt(ctx)
     return bcrypt.generate_password_hash(password)
+
+# Funkcja sprawdzająca czy podane hasło jest równoznacze z hashem przypisanym do użytkownika w bazie danych
+# Funkcja jako argument przyjmuje instancje aplikacji, nazwe uzytkownika oraz podane hasło do sprawdzenia
 def checkHash(ctx,name,pass_to_check):
     db = get_db()
     sql_command = "select password from users where username=%s"
@@ -28,9 +31,12 @@ def checkHash(ctx,name,pass_to_check):
     try:
         db_pass = cursor.fetchone()[0]
         bcrypt = Bcrypt(ctx)
+        # Sprawdzenie czy po odkształceniu hashu z bazy ciąg jest taki sam jak podany w argumencie
         return bcrypt.check_password_hash(db_pass,pass_to_check)
     except TypeError:
         return False
+
+# Funkcja zwracająca dane użytkownika na podstawie jego id w bazie danych
 def getUser(id):
     db = get_db()
     sql = "select username from users where id=%s"
@@ -38,7 +44,8 @@ def getUser(id):
     cursor.execute(sql,[id])
     return cursor.fetchone()[0]
 
-def addUser(user):
+# Funkcja wprowadzająca dane do bazy danych
+def insertUserToDB(user):
     email = user['email']
     username=user['username']
     password = user['password']
@@ -48,24 +55,16 @@ def addUser(user):
     sql = "insert into users(email,username,password,api_key) values(%s,%s,%s,%s)"
     cursor.execute(sql,[email,username,password,api])
     db.commit()
-def getPosts():
-    db = get_db()
-    posts = db.execute("select * from posts")
-    postsList = []
-    for p in posts.fetchall():
-        u_id = p['user_id']
-        author = getUser(u_id)
-        postsList.append({'id':p['post_id'],'user_name':author,'content':p['post_content']})
-    return postsList
 
-
-
+# Funkcja zwracająca api_key z bazy danych dla danego użytkownika
 def getApiKey(username):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     sql = f'SELECT api_key from users where username=%s'
     cursor.execute(sql,[username])
     return cursor.fetchone()['api_key']
+
+# Funkcja sprawddzająca czy dany użytkownik o danej nazwie lub emailu jest już w bazie
 def isUserExists(user):
     sql = "select * from users where username=%s or email=%s"
     db = get_db()
@@ -85,6 +84,7 @@ def isUserExists(user):
                 return res
     return res
 
+# Funkcja sprawdzająca czy podany klucz api znajduje się w bazie
 def isKeyValid(key):
     db=get_db()
     cursor = db.cursor(dictionary=True)
@@ -99,16 +99,13 @@ def isKeyValid(key):
         else:
             return False
 
+# Funkcja generująca i zwracająca klucz api
 def generateApiKey():
     api_key = str(uuid.uuid4())
     return api_key
+
 class UsersSchema(Schema):
     id = fields.Integer()
     email = fields.String()
     username = fields.String()
     password = fields.String()
-
-class PostsSchema(Schema):
-    postID = fields.Integer()
-    userID = fields.Integer()
-    content = fields.String()
